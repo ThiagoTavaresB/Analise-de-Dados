@@ -1,0 +1,369 @@
+---
+title: "Trabalho Final AED"
+author: "Thiago Tavares Braga e Rapha Trindade da Silva"
+format: revealjs
+editor: visual
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introdução básica
+
+**Este codigo reproduz a análise exploratoria de dados (AED) descrita no relatorio, usando algumas bibliotecas em R.**
+
+# Chama as bibliotecas
+
+```{R, eval=TRUE}
+# Chama as bibliotecas
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(tidyr)
+```
+
+# Dataset 1: Classificacao.csv
+
+```{R, results='hide'}
+# 1. Importar e inspecionar os dados_classificacao:
+dados_classificacao <- read.csv("Classificacao.csv", sep = ",", header = TRUE)
+
+# Verificacao de NAs
+sum(is.na(dados_classificacao))
+
+# Análise Descritiva
+summary(dados_classificacao)
+```
+
+# 2. Análise Univariada:
+
+-   **Histograma de Pontos**
+-   **Frequência de Posições**
+
+## Histograma de Pontos:
+
+```{R, results='hide'}
+# Histograma de Pontos:
+ggplot(dados_classificacao, aes(x = Pontos)) +
+  geom_histogram(bins = 10, fill = "skyblue", color = "black") +
+  labs(title = "Histograma de Pontos", x = "Pontos", y = "Frequencia")
+```
+
+## Frequência de Posições:
+
+```{R, results='hide'}
+# Frequência de Posições:
+ggplot(dados_classificacao, aes(x = Posicao)) +
+  geom_bar(fill = "lightgreen", color = "black") +
+  labs(title = "Frequencia de Posicoes", x = "Posicao", y = "Frequencia") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+# 3. Análise Bivariada:
+
+-   **Relacao entre Pontos e Posicao**
+-   **Gols Pro (GP) x Gols Contra (GC)**
+-   **Vitorias x Posicao**
+
+## Relacao entre Pontos e Posição:
+
+```{R, eval=FALSE}
+# Calculando a correlacao usando dplyr
+cor_pontos_posicao <- dados_classificacao %>%
+  summarize(cor = cor(Pontos, Posicao, use = "complete.obs"))
+# Criando o scatter plot com ggplot2
+ggplot(dados_classificacao, aes(x = Pontos, y = Posicao)) +
+  geom_point(size = 3, color = "steelblue") +  # Pontos maiores e com cor
+  geom_smooth(method = "lm", se = FALSE, color = "firebrick") + # Linha de regressão
+  labs(title = "Pontos x Posicao",
+       subtitle = paste("Correlacao:", round(cor_pontos_posicao$cor, 2)), # Adicionando a correlacao ao subtítulo
+       x = "Pontos", y = "Posicao") +
+  scale_y_reverse(breaks = seq(20, 1, by = -1)) + # Inverte o eixo y para melhor interpretacao
+  theme_bw() # Adiciona um tema mais limpo e moderno
+```
+
+## Gráfico:
+
+```{R, echo=FALSE}
+# Calculando a correlacao usando dplyr
+cor_pontos_posicao <- dados_classificacao %>%
+  summarize(cor = cor(Pontos, Posicao, use = "complete.obs"))
+# Criando o scatter plot com ggplot2
+ggplot(dados_classificacao, aes(x = Pontos, y = Posicao)) +
+  geom_point(size = 3, color = "steelblue") +  # Pontos maiores e com cor
+  geom_smooth(method = "lm", se = FALSE, color = "firebrick") + # Linha de regressão
+  labs(title = "Pontos x Posicao",
+       subtitle = paste("Correlacao:", round(cor_pontos_posicao$cor, 2)), # Adicionando a correlacao ao subtítulo
+       x = "Pontos", y = "Posicao") +
+  scale_y_reverse(breaks = seq(20, 1, by = -1)) + # Inverte o eixo y para melhor interpretacao
+  theme_bw() # Adiciona um tema mais limpo e moderno
+```
+
+## Gols Pro (GP) x Gols Contra (GC):
+
+```{R, results='hide'}
+# Gols Pro (GP) x Gols Contra (GC):
+
+ggplot(dados_classificacao, aes(x = GP, y = GC)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gols Pro x Gols Contra", x = "Gols Pro", y = "Gols Contra") +
+  annotate("text", x = max(dados_classificacao$GP)*0.7, y = max(dados_classificacao$GC)*0.9, label = paste("Correlacao:", round(cor(dados_classificacao$GP, dados_classificacao$GC, use = "complete.obs"), 2)))
+```
+
+## Vitorias x Posicao:
+
+```{R, results='hide'}
+# Vitorias x Posicao:
+
+ggplot(dados_classificacao, aes(x = Vitorias, y = Posicao)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Vitorias x Posicao", x = "Numero de Vitorias", y = "Posicao") +
+  annotate("text", x = max(dados_classificacao$Vitorias)*0.7, y = max(dados_classificacao$Posicao)*0.9, label = paste("Correlacao:", round(cor(dados_classificacao$Vitorias, dados_classificacao$Posicao, use = "complete.obs"), 2)))
+```
+
+# 4. Análise considerando a Rodada:
+
+-   **Média de pontos por rodada:**
+-   **Evolucao da Posicao de um time específico (Exemplo: Botafogo):**
+
+## Média de pontos por rodada:
+
+```{R, results='hide'}
+# Média de pontos por rodada:
+medias_pontos <- dados_classificacao %>%
+  group_by(Rodada) %>%
+  summarize(Media_Pontos = mean(Pontos))
+
+ggplot(medias_pontos, aes(x = Rodada, y = Media_Pontos)) +
+  geom_line(color = "blue") +
+  labs(title = "Média de Pontos por Rodada", x = "Rodada", y = "Média de Pontos")
+
+```
+
+## Evolucao da Posicao de um time específico (Exemplo: Botafogo):
+
+```{R, eval=FALSE}
+# Evolução da Posição do Botafogo
+botafogo <- dados_classificacao %>% filter(Time == "Botafogo")
+ggplot(botafogo, aes(x = Rodada, y = Posicao)) +
+  geom_line(color = "red") +
+  scale_y_reverse(breaks = seq(20, 0, by = -1)) + # Inverte o eixo y e define as marcações
+  scale_x_continuous(breaks = seq(1, 29, by = 2), limits = c(1,29)) + # Força o eixo x de 1 a 38
+  labs(title = "Evolucao da Posição do Botafogo", x = "Rodada", y = "Posição") +
+  theme_bw() # Adiciona um tema mais limpo
+```
+
+## Gráfico:
+
+```{R, echo=FALSE}
+# Evolução da Posição do Botafogo
+botafogo <- dados_classificacao %>% filter(Time == "Botafogo")
+ggplot(botafogo, aes(x = Rodada, y = Posicao)) +
+  geom_line(color = "red") +
+  scale_y_reverse(breaks = seq(20, 0, by = -1)) + # Inverte o eixo y e define as marcações
+  scale_x_continuous(breaks = seq(1, 29, by = 2), limits = c(1,29)) + # Força o eixo x de 1 a 38
+  labs(title = "Evolucao da Posição do Botafogo", x = "Rodada", y = "Posição") +
+  theme_bw() # Adiciona um tema mais limpo
+```
+
+# Dataset 2: Partidas_Realizadas.csv
+
+```{R, results='hide'}
+# Carregando dados de partidas (Partidas_Realizadas.csv)
+partidas <- read.csv("Partidas_Realizadas.csv", sep = ",", header = TRUE, stringsAsFactors = FALSE)
+
+# Limpeza e conversão de dados
+partidas <- partidas %>%
+  mutate(Placar_Mandante = ifelse(Placar_Mandante == "X", NA, as.numeric(Placar_Mandante)),
+         Placar_Visitante = ifelse(Placar_Visitante == "X", NA, as.numeric(Placar_Visitante)))
+```
+
+```{R, results='hide'}
+# Transformando os placares em numéricos
+partidas$Placar_Mandante[partidas$Placar_Mandante == "X"] <- NA
+partidas$Placar_Visitante[partidas$Placar_Visitante == "X"] <- NA
+partidas$Placar_Mandante <- as.numeric(partidas$Placar_Mandante)
+partidas$Placar_Visitante <- as.numeric(partidas$Placar_Visitante)
+```
+
+# 2. Análise Univariada:
+
+-   **Histogramas de Placares(Mandante e Visitante)**
+-   **Estatísticas descritivas**
+-   **Frequência de times mandantes**
+
+## Placar Mandante
+
+```{R, results='hide'}
+# Placar Mandante
+
+ggplot(partidas, aes(x = Placar_Mandante)) +
+  geom_histogram(bins = 10, fill = "orange", color = "black") +
+  labs(title = "Histograma de Placares do Mandante", x = "Gols do Mandante", y = "Frequência")
+```
+
+## Placar Visitante
+
+```{R, results='hide'}
+ggplot(partidas, aes(x = Placar_Visitante)) +
+  geom_histogram(bins = 10, fill = "purple", color = "black") +
+  labs(title = "Histograma de Placares do Visitante", x = "Gols do Visitante", y = "Frequência")
+```
+
+## Estatísticas descritivas
+
+```{R}
+# Estatísticas descritivas
+
+partidas %>%
+  summarize(Media_Mandante = mean(Placar_Mandante, na.rm = TRUE),
+            Media_Visitante = mean(Placar_Visitante, na.rm = TRUE),
+            Mediana_Mandante = median(Placar_Mandante, na.rm = TRUE),
+            Mediana_Visitante = median(Placar_Visitante, na.rm = TRUE))
+```
+
+## Frequência de times mandantes:
+
+```{R, results='hide'}
+# Frequência de Times Mandantes
+ggplot(partidas, aes(x = Mandante)) +
+  geom_bar(fill = "brown", color = "black") +
+  labs(title = "Frequência de Times Mandantes", x = "Time", y = "Frequência") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+# 3. Análise Bivariada:
+
+-   **Relação entre gols do mandante e gols do visitante**
+-   **Gols totais por estádio**
+
+## Relacao entre gols do mandante e gols do visitante:
+
+```{R, results='hide'}
+ggplot(partidas, aes(x = Placar_Mandante, y = Placar_Visitante)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Gols Mandante x Gols Visitante", x = "Gols Mandante", y = "Gols Visitante") +
+  annotate("text", x = max(partidas$Placar_Mandante, na.rm = TRUE)*0.7, y = max(partidas$Placar_Visitante, na.rm = TRUE)*0.9, label = paste("Correlação:", round(cor(partidas$Placar_Mandante, partidas$Placar_Visitante, use = "complete.obs"), 2)))
+```
+
+## Gols totais por estádio:
+
+```{R, results='hide'}
+# Gols totais por estádio:
+
+gols_por_estadio <- partidas %>%
+  group_by(Estadio) %>%
+  summarize(Totais = sum(Placar_Mandante, Placar_Visitante, na.rm = TRUE))
+
+ggplot(gols_por_estadio, aes(x = Estadio, y = Totais)) +
+  geom_bar(stat = "identity", fill = "darkolivegreen3", color = "black") +
+  labs(title = "Gols Totais por Estádio", x = "Estádio", y = "Gols Totais") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+# 4. Análise considerando a Rodada:
+
+-   **Média de gols por rodada:**
+
+## Média de gols por rodada:
+
+```{R, results='hide'}
+# Gols Totais por Rodada
+gols_por_rodada <- partidas %>%
+  group_by(Rodada) %>%
+  summarize(Totais = mean(Placar_Mandante + Placar_Visitante, na.rm = TRUE))
+
+ggplot(gols_por_rodada, aes(x = Rodada, y = Totais)) +
+  geom_line(color = "darkgreen") +
+  labs(title = "Gols Totais por Rodada", x = "Rodada", y = "Gols Totais (Média)")
+```
+
+# Dataset 3: Partidas_Nao_Realizadas.csv
+
+```{R, results='hide'}
+# 1. Importar e inspecionar os dados_classificacao:
+
+partidas_nao_realizadas <- read.csv("Partidas_Nao_Realizadas.csv", sep = ",", header = TRUE, stringsAsFactors = FALSE)
+```
+
+# 2. Análise Univariada:
+
+-   **Histograma de Pontos**
+-   **Frequência de Posições**
+
+## Frequência de times como mandante:
+
+```{R, results='hide'}
+# Frequência de times como mandante:
+
+ggplot(partidas_nao_realizadas, aes(x = Mandante)) +
+  geom_bar(fill = "tomato", color = "black") +
+  labs(title = "Frequência de Times como Mandante (Partidas Futuras)", x = "Time", y = "Frequência") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Frequência de times como visitante:
+
+```{R, results='hide'}
+# Frequência de times como visitante:
+
+ggplot(partidas_nao_realizadas, aes(x = Visitante)) +
+  geom_bar(fill = "coral", color = "black") +
+  labs(title = "Frequência de Times como Visitante (Partidas Futuras)", x = "Time", y = "Frequência") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Distribuicao das rodadas:
+
+```{R, results='hide'}
+# Distribuicao das rodadas:
+
+ggplot(partidas_nao_realizadas, aes(x = Rodada)) +
+  geom_bar(fill = "sienna", color = "black") +
+  labs(title = "Número de Partidas por Rodada (Futuras)", x = "Rodada", y = "Número de Partidas")
+```
+
+# 3. Análise Bivariada:
+
+-   **Combinações de mandante e visitante:**
+
+## Combinações de mandante e visitante:
+
+```{R, eval=FALSE}
+# Tabela de Contingência (heatmap) com ggplot2
+tabela_combinacoes <- partidas_nao_realizadas %>%
+  count(Mandante, Visitante) %>%
+  spread(Visitante, n, fill = 0)
+# Converter para formato longo para ggplot2
+tabela_longa <- tabela_combinacoes %>%
+  pivot_longer(cols = -Mandante, names_to = "Visitante", values_to = "Frequencia")
+ggplot(tabela_longa, aes(x = Mandante, y = Visitante, fill = Frequencia)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "white", high = "red") +
+  labs(title = "Tabela de Contingência de Partidas Não Realizadas",
+       x = "Mandante", y = "Visitante", fill = "Frequência") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Gráfico:
+
+```{R, echo=FALSE}
+# Tabela de Contingência (heatmap) com ggplot2
+tabela_combinacoes <- partidas_nao_realizadas %>%
+  count(Mandante, Visitante) %>%
+  spread(Visitante, n, fill = 0)
+# Converter para formato longo para ggplot2
+tabela_longa <- tabela_combinacoes %>%
+  pivot_longer(cols = -Mandante, names_to = "Visitante", values_to = "Frequencia")
+ggplot(tabela_longa, aes(x = Mandante, y = Visitante, fill = Frequencia)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "white", high = "red") +
+  labs(title = "Tabela de Contingência de Partidas Não Realizadas",
+       x = "Mandante", y = "Visitante", fill = "Frequência") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
