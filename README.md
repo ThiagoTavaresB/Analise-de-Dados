@@ -30,7 +30,6 @@ Realizar uma análise exploratória de dados a partir de um conjunto de dados fo
 ## 📁 Estrutura dos Arquivos
 - `Trabalho Final AED Thiago e Rapha.qmd` → Código-fonte do relatório
 - `Trabalho Final AED Thiago e Rapha.html` → Relatório renderizado (HTML)
-- `dados/` → Conjunto de dados utilizados (se aplicável)
 
 ---
 
